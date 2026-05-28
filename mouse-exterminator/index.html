@@ -767,6 +767,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 }, { passive: true });
             }
 
+            // Keep quote CTA anchored to this same page
+            document.querySelectorAll("a[href='#quote-form']").forEach((link) => {
+                link.addEventListener("click", (event) => {
+                    event.preventDefault();
+                    const targetForm = document.getElementById("quote-form");
+                    if (targetForm) {
+                        targetForm.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                });
+            });
+
             // Shared form submit tracking for Netlify forms
             function trackFormSubmit(formName) {
                 document.body.setAttribute('data-form-status', 'form_submit');
