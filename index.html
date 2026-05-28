@@ -716,6 +716,27 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 }, { passive: true });
             }
 
+            // Shared form submit tracking for Netlify forms
+            function trackFormSubmit(formName) {
+                document.body.setAttribute('data-form-status', 'form_submit');
+                window.dispatchEvent(new CustomEvent('form-submit-success', {
+                    detail: { formName }
+                }));
+
+                if (window.dataLayer) {
+                    window.dataLayer.push({
+                        event: 'form_submit',
+                        form_name: formName
+                    });
+                }
+
+                if (typeof window.gtag === 'function') {
+                    window.gtag('event', 'form_submit', {
+                        form_name: formName
+                    });
+                }
+            }
+
             // Form submission logic with Modal
             const leadForm = document.getElementById("lead-form");
             const modal = document.getElementById("success-modal");
@@ -733,10 +754,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                         headers: { "Content-Type": "application/x-www-form-urlencoded" }
                     })
                     .then(() => {
-                        // Kick back a tag by triggering a custom event or adding a data attribute
-                        // Tracking removed for clean template.
-                        document.body.setAttribute('data-form-status', 'form_submit');
-                        window.dispatchEvent(new CustomEvent('form-submit-success'));
+                        trackFormSubmit(leadForm.getAttribute('name') || 'pest-control-quote');
                         
                         // Show modal
                         modal.style.display = "block";
@@ -751,6 +769,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                     });
                 });
             }
+
+            // Track all other Netlify forms (native submit flow)
+            document.querySelectorAll("form[data-netlify='true']").forEach((form) => {
+                if (form.id === "lead-form") return;
+
+                form.addEventListener("submit", () => {
+                    trackFormSubmit(form.getAttribute('name') || 'netlify-form');
+                });
+            });
 
             // Modal Close handlers
             closeButtons.forEach(btn => {
